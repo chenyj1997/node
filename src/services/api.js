@@ -1,7 +1,7 @@
 import axios from 'axios';
 import config from '../config';
 
-const baseURL = `${config.apiBaseUrl}/api`;
+const baseURL = config.apiBaseUrl;
 const baseStaticURL = config.apiBaseUrl;
 
 const api = axios.create({
@@ -16,6 +16,11 @@ const api = axios.create({
 // 请求拦截器
 api.interceptors.request.use(
     (config) => {
+        // --- 添加日志 ---
+        const fullUrl = `${config.baseURL}${config.url}`;
+        console.log(`[API Request] Sending ${config.method.toUpperCase()} request to: ${fullUrl}`);
+        // --- 日志结束 ---
+        
         // 确保使用HTTPS
         if (config.url && config.url.startsWith('http://')) {
             config.url = config.url.replace('http://', 'https://');
