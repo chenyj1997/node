@@ -1,6 +1,6 @@
 const getApiBaseUrl = () => {
-  // API基础URL - 后端服务器
-  return 'https://lion-citysearch-might-christina.trycloudflare.com'; // 后端服务器地址
+  // 优先从环境变量读取API基础URL，否则使用备用地址（主要用于本地开发）
+  return process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
 };
 
 const config = {
