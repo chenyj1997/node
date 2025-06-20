@@ -44,14 +44,17 @@ export const AuthProvider = ({ children }) => {
     }
   }, [isAuthenticated]);
 
+  // 初始化时自动从 localStorage 恢复 token 和 user
   useEffect(() => {
     const token = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
     if (token && storedUser) {
       setIsAuthenticated(true);
       setUser(JSON.parse(storedUser));
+    } else {
+      setIsAuthenticated(false);
+      setUser(null);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
