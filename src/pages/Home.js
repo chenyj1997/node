@@ -78,6 +78,11 @@ function Home() {
     setCurrentPage(page);
   }, [location.search]);
 
+  // 跳转到详情页时，带上当前分页参数
+  const handleCardClick = (id) => {
+    navigate(`/detail/${id}?fromPage=${currentPage}`);
+  };
+
   // 使用useMemo缓存卡片渲染结果
   const cards = useMemo(() => {
     if (postsLoading || adsLoading) {
@@ -337,7 +342,7 @@ function Home() {
       adIndex++;
     }
     return cards;
-  }, [postsData, adsData, postsLoading, adsLoading, navigate, handleCardClick]);
+  }, [postsData, adsData, postsLoading, adsLoading, handleCardClick]);
 
   // 处理公告切换
   const handleAnnouncementChange = (index) => {
@@ -356,11 +361,6 @@ function Home() {
     if (currentAnnouncementIndex < announcements.length - 1) {
       setCurrentAnnouncementIndex(currentAnnouncementIndex + 1);
     }
-  };
-
-  // 跳转到详情页时，带上当前分页参数
-  const handleCardClick = (id) => {
-    navigate(`/detail/${id}?fromPage=${currentPage}`);
   };
 
   // 事件监听、公告弹窗等副作用逻辑，必须在顶层调用
