@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Box from '@mui/material/Box';
@@ -79,9 +79,9 @@ function Home() {
   }, [location.search]);
 
   // 跳转到详情页时，带上当前分页参数
-  const handleCardClick = (id) => {
+  const handleCardClick = useCallback((id) => {
     navigate(`/detail/${id}?fromPage=${currentPage}`);
-  };
+  }, [navigate, currentPage]);
 
   // 使用useMemo缓存卡片渲染结果
   const cards = useMemo(() => {
