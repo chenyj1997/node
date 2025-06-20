@@ -201,7 +201,11 @@ function Home() {
               <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
                 <CardMedia
                   component="img"
-                  image={post.imageUrls && post.imageUrls.length > 0 ? `${baseStaticURL}${post.imageUrls[0]}` : 'https://via.placeholder.com/150'}
+                  image={
+                    post.imageUrls && post.imageUrls.length > 0
+                      ? (post.imageUrls[0].startsWith('http') ? post.imageUrls[0] : `${baseStaticURL}${post.imageUrls[0]}`)
+                      : 'https://via.placeholder.com/150'
+                  }
                   alt={post.title}
                   loading="lazy"
                   sx={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 4 }}
@@ -355,7 +359,21 @@ function Home() {
     }
   };
 
-  // 监听系统通知事件
+  // 跳转到详情页时，带上当前分页参数
+  const handleCardClick = (id) => {
+    navigate(`/detail/${id}?fromPage=${currentPage}`);
+  };
+
+  // 页面主内容渲染
+  if (postsLoading || adsLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography>加载中...</Typography>
+      </Box>
+    );
+  }
+
+  // 事件监听、公告弹窗等副作用逻辑延后
   useEffect(() => {
     const handleShowSystemNotification = (event) => {
       const notificationData = event.detail;
@@ -366,25 +384,11 @@ function Home() {
         setDontShowToday(notificationData.dontShowTodayStatus || false);
       }
     };
-
     window.addEventListener('showSystemNotificationDetail', handleShowSystemNotification);
     return () => {
       window.removeEventListener('showSystemNotificationDetail', handleShowSystemNotification);
     };
   }, []);
-
-  // 跳转到详情页时，带上当前分页参数
-  const handleCardClick = (id) => {
-    navigate(`/detail/${id}?fromPage=${currentPage}`);
-  };
-
-  if (postsLoading || adsLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Typography>加载中...</Typography>
-      </Box>
-    );
-  }
 
   return (
     <>
