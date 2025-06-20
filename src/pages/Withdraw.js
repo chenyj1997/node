@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -38,6 +38,21 @@ function Withdraw() {
     severity: 'success'
   });
 
+  const fetchBalance = useCallback(async () => {
+    try {
+      const response = await apiService.transactionService.getBalance();
+      if (response.success) {
+        setBalance(response.data.balance);
+        showSnackbar(`余额已更新: ¥${response.data.balance.toFixed(2)}`);
+      } else {
+        setError(response.message || '获取余额失败');
+      }
+    } catch (err) {
+      setError(err.message || '获取余额失败');
+      console.error('获取余额失败:', err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchBalance();
     checkPaymentPasswordStatus();
@@ -52,21 +67,6 @@ function Withdraw() {
     } catch (err) {
       console.error('获取支付密码状态失败:', err);
       setError(err.response?.data?.message || err.message || '获取支付密码状态失败');
-    }
-  };
-
-  const fetchBalance = async () => {
-    try {
-      const response = await apiService.transactionService.getBalance();
-      if (response.success) {
-        setBalance(response.data.balance);
-        showSnackbar(`余额已更新: ¥${response.data.balance.toFixed(2)}`);
-      } else {
-        setError(response.message || '获取余额失败');
-      }
-    } catch (err) {
-      setError(err.message || '获取余额失败');
-      console.error('获取余额失败:', err);
     }
   };
 
