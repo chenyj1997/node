@@ -1,6 +1,10 @@
 const getApiBaseUrl = () => {
-  // 线上环境优先从环境变量读取API基础URL，否则使用备用地址（主要用于本地开发）
-  return process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api'; // 本地开发指向后端端口
+  // 临时硬编码线上地址，确保部署后能正常工作
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://server-c752.onrender.com/api';
+  }
+  // 本地开发环境
+  return process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
 };
 
 const config = {
