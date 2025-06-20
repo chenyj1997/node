@@ -114,8 +114,7 @@ function Login() {
         setLoading(false);
         return;
       }
-      window.location.reload();
-    }, 1500);
+
     setRefreshTimer(timer);
 
     try {
