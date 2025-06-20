@@ -1,10 +1,10 @@
 const getApiBaseUrl = () => {
   // 临时硬编码线上地址，确保部署后能正常工作
   if (process.env.NODE_ENV === 'production') {
-    return 'https://server-c752.onrender.com/api';
+    return 'https://server-c752.onrender.com';
   }
   // 本地开发环境
-  return process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+  return process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 };
 
 const config = {
