@@ -219,9 +219,10 @@ export const AuthProvider = ({ children }) => {
     updateUser, // Exposing the normalized updateUser
   };
 
+  // 优先渲染页面主内容，挂载/预检逻辑延后
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
