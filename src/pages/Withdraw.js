@@ -41,7 +41,7 @@ function Withdraw() {
   useEffect(() => {
     fetchBalance();
     checkPaymentPasswordStatus();
-  }, []);
+  }, [fetchBalance]);
 
   const checkPaymentPasswordStatus = async () => {
     try {
