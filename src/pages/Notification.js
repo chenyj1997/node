@@ -162,7 +162,7 @@ function Notification() {
                             color={!['withdraw', 'purchase'].includes(String(tx.type).toLowerCase()) ? 'success.main' : 'error.main'}
                             sx={{ display: 'block', mb: 0.5 }}
                           >
-                            金额: { !['withdraw', 'purchase'].includes(String(tx.type).toLowerCase()) ? '+' : '-'}￥{tx.amount ? Math.abs(tx.amount).toFixed(2) : '0.00'}
+                            金额: ￥{ !['withdraw', 'purchase'].includes(String(tx.type).toLowerCase()) ? '+' : '-'}{tx.amount ? Math.abs(tx.amount).toFixed(2) : '0.00'}
                           </Typography>
                           <Typography
                             component="span"
