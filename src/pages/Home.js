@@ -8,7 +8,6 @@ import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import CardMedia from '@mui/material/CardMedia';
 import Skeleton from '@mui/material/Skeleton';
-import Pagination from '@mui/material/Pagination';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Modal from '@mui/material/Modal';
@@ -338,7 +337,7 @@ function Home() {
       adIndex++;
     }
     return cards;
-  }, [postsData, adsData, postsLoading, adsLoading, navigate]);
+  }, [postsData, adsData, postsLoading, adsLoading, navigate, handleCardClick]);
 
   // 处理公告切换
   const handleAnnouncementChange = (index) => {
