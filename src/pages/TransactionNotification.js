@@ -15,7 +15,6 @@ import {
   ListItemAvatar,
   Avatar,
   Divider,
-  Chip,
   useTheme,
   useMediaQuery,
   Container,
@@ -66,25 +65,6 @@ function TransactionNotification() {
         return 'success'; 
       default:
         return 'default';
-    }
-  };
-
-  const getTransactionTypeLabel = (type) => {
-    switch (type) {
-      case 'recharge':
-        return '充值';
-      case 'withdraw':
-        return '提现';
-      case 'referral_reward':
-        return '邀请奖励';
-      case 'REFERRAL_COMMISSION':
-        return '推荐佣金';
-      case 'purchase':
-        return '购买信息';
-      case 'repay': // 收益
-        return '收益';
-      default:
-        return type;
     }
   };
 
