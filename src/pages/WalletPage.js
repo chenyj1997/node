@@ -10,14 +10,11 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import apiService from '../services/api';
 
-const ITEMS_PER_PAGE = 10;
-
 function WalletPage() {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState([]);
   const [loadingTransactions, setLoadingTransactions] = useState(true);
   const [transactionError, setTransactionError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchTransactions = useCallback(async () => {
     if (!user) return;
