@@ -247,12 +247,13 @@ function Detail() {
                   <Box sx={{ mb: 2 }}>
                     <Box
                       component="img"
-                      src={`${baseStaticURL}${post.imageUrls[0]}`}
+                      src={post.imageUrls[0].startsWith('http') ? post.imageUrls[0] : `${baseStaticURL}${post.imageUrls[0]}`}
                       alt={post.title}
                       sx={{
                         width: '100%',
                         height: 'auto',
                         objectFit: 'contain',
+                        borderRadius: 1
                       }}
                     />
                   </Box>
@@ -298,7 +299,7 @@ function Detail() {
                   <Box sx={{ mb: 2 }}>
                     <Box
                       component="img"
-                      src={`${baseStaticURL}${post.imageUrls[0]}`}
+                      src={post.imageUrls[0].startsWith('http') ? post.imageUrls[0] : `${baseStaticURL}${post.imageUrls[0]}`}
                       alt={post.title}
                       sx={{
                         width: '100%',
@@ -403,7 +404,7 @@ function Detail() {
                         <Grid item xs={12} sm={6} md={4} key={index}>
                           <Box
                             component="img"
-                            src={`${baseStaticURL}${url}`}
+                            src={url.startsWith('http') ? url : `${baseStaticURL}${url}`}
                             alt={`Image ${index + 2}`}
                             sx={{
                               width: '100%',
