@@ -51,7 +51,7 @@ function Login() {
       sessionStorage.removeItem('tempPassword');
       navigate('/home', { replace: true });
     }
-  }, [isAuthenticated, authLoading, navigate]);
+  }, [isAuthenticated, authLoading, navigate, setIsAuthenticated, setUser]);
 
   // 处理AuthContext中的全局认证错误，并控制localError显示
   useEffect(() => {
