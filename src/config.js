@@ -1,6 +1,6 @@
 const getApiBaseUrl = () => {
-  // 优先从环境变量读取API基础URL，否则使用备用地址（主要用于本地开发）
-  return process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
+  // 线上环境优先从环境变量读取API基础URL，否则使用备用地址（主要用于本地开发）
+  return process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api'; // 本地开发指向后端端口
 };
 
 const config = {
