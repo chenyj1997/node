@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import ThemeProvider from '@mui/material/styles/ThemeProvider';
 import createTheme from '@mui/material/styles/createTheme';
@@ -118,6 +118,14 @@ function AppContent() {
 }
 
 function App() {
+  useEffect(() => {
+    // 全局登录检测
+    const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+    if (!token || typeof token !== 'string' || token.length < 10) {
+      window.location.href = 'https://node-2kvt.onrender.com';
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
