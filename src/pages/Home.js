@@ -1,21 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
-import IconButton from '@mui/material/IconButton';
-import CardMedia from '@mui/material/CardMedia';
-import Skeleton from '@mui/material/Skeleton';
-import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Modal from '@mui/material/Modal';
-import Paper from '@mui/material/Paper';
-import CloseIcon from '@mui/icons-material/Close';
+import {
+  Box,
+  Card,
+  Typography,
+  Grid,
+  IconButton,
+  CardMedia,
+  Skeleton,
+  Pagination
+} from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import apiService, { baseStaticURL } from '../services/api';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
+
+// Import Modal and Paper from Material UI
+import Modal from '@mui/material/Modal';
+import Paper from '@mui/material/Paper';
+import CloseIcon from '@mui/icons-material/Close';
 
 // 色带颜色数组
 const bandColors = ['#4ecdc4', '#f7b731', '#fd6e6a', '#5f27cd', '#54a0ff', '#00b894', '#e17055', '#00b8d4'];
@@ -77,11 +82,6 @@ function Home() {
     const page = parseInt(query.get('page')) || 1;
     setCurrentPage(page);
   }, [location.search]);
-
-  // 跳转到详情页时，带上当前分页参数
-  const handleCardClick = (id) => {
-    navigate(`/detail/${id}?fromPage=${currentPage}`);
-  };
 
   // 使用useMemo缓存卡片渲染结果
   const cards = useMemo(() => {
@@ -205,11 +205,7 @@ function Home() {
               <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
                 <CardMedia
                   component="img"
-                  image={
-                    post.imageUrls && post.imageUrls.length > 0
-                      ? (post.imageUrls[0].startsWith('http') ? post.imageUrls[0] : `${baseStaticURL}${post.imageUrls[0]}`)
-                      : 'https://via.placeholder.com/150'
-                  }
+                  image={post.imageUrls && post.imageUrls.length > 0 ? `${baseStaticURL}${post.imageUrls[0]}` : 'https://via.placeholder.com/150'}
                   alt={post.title}
                   loading="lazy"
                   sx={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 4 }}
@@ -342,7 +338,7 @@ function Home() {
       adIndex++;
     }
     return cards;
-  }, [postsData, adsData, postsLoading, adsLoading, handleCardClick]);
+  }, [postsData, adsData, postsLoading, adsLoading, navigate]);
 
   // 处理公告切换
   const handleAnnouncementChange = (index) => {
@@ -363,7 +359,7 @@ function Home() {
     }
   };
 
-  // 事件监听、公告弹窗等副作用逻辑，必须在顶层调用
+  // 监听系统通知事件
   useEffect(() => {
     const handleShowSystemNotification = (event) => {
       const notificationData = event.detail;
@@ -374,11 +370,17 @@ function Home() {
         setDontShowToday(notificationData.dontShowTodayStatus || false);
       }
     };
+
     window.addEventListener('showSystemNotificationDetail', handleShowSystemNotification);
     return () => {
       window.removeEventListener('showSystemNotificationDetail', handleShowSystemNotification);
     };
   }, []);
+
+  // 跳转到详情页时，带上当前分页参数
+  const handleCardClick = (id) => {
+    navigate(`/detail/${id}?fromPage=${currentPage}`);
+  };
 
   if (postsLoading || adsLoading) {
     return (
