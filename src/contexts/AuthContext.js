@@ -55,6 +55,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
       setUser(null);
     }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
