@@ -1,22 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
-import CircularProgress from '@mui/material/CircularProgress';
-import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import MuiLink from '@mui/material/Link';
-import Alert from '@mui/material/Alert';
-import Container from '@mui/material/Container';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogActions from '@mui/material/DialogActions';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, TextField, Button, CircularProgress, Checkbox, FormControlLabel, Link as MuiLink, Alert, Container, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import Modal from '@mui/material/Modal';
 
 function Login() {
   // Load initial state from localStorage for rememberMe and username
@@ -32,10 +17,7 @@ function Login() {
   const [localError, setLocalError] = useState(''); // 用于Login组件内部的即时错误，如空输入
   const navigate = useNavigate();
   // 从AuthContext获取状态和方法
-  const { login, isAuthenticated, authError, clearAuthError, showDeviceConflictDialog, clearDeviceConflictDialog, loading: authLoading, setIsAuthenticated, setUser } = useAuth();
-  const [refreshTimer, setRefreshTimer] = useState(null);
-  const [shouldRefresh, setShouldRefresh] = useState(false);
-  const refreshTimeoutRef = useRef(null);
+  const { login, isAuthenticated, user, authError, clearAuthError, showDeviceConflictDialog, clearDeviceConflictDialog } = useAuth();
 
   // 监听密码变化，保存到sessionStorage
   useEffect(() => {
@@ -46,12 +28,11 @@ function Login() {
 
   // 如果已经认证，清除临时密码并跳转到首页
   useEffect(() => {
-    console.log('isAuthenticated:', isAuthenticated, 'authLoading:', authLoading);
-    if (isAuthenticated && !authLoading) {
+    if (isAuthenticated) {
       sessionStorage.removeItem('tempPassword');
       navigate('/home', { replace: true });
     }
-  }, [isAuthenticated, authLoading, navigate, setIsAuthenticated, setUser]);
+  }, [isAuthenticated, navigate, user]);
 
   // 处理AuthContext中的全局认证错误，并控制localError显示
   useEffect(() => {
@@ -68,22 +49,6 @@ function Login() {
     }
   }, [authError]);
 
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const token = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
-      if (token && storedUser) {
-        setIsAuthenticated(true);
-        setUser(JSON.parse(storedUser));
-      } else {
-        setIsAuthenticated(false);
-        setUser(null);
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!username || !password) {
@@ -92,10 +57,11 @@ function Login() {
     }
 
     setLoading(true);
-    setLocalError('');
-    clearAuthError();
-    clearDeviceConflictDialog();
+    setLocalError(''); // 每次提交前清除本地错误
+    clearAuthError(); // 每次提交前清除AuthContext中的全局错误
+    clearDeviceConflictDialog(); // 确保每次提交前对话框是关闭的
 
+    // Save rememberMe state and username if checked
     if (rememberMe) {
       localStorage.setItem('rememberMe', 'true');
       localStorage.setItem('rememberedUsername', username);
@@ -106,14 +72,6 @@ function Login() {
 
     try {
       await login({ username, password });
-      window.dispatchEvent(new Event('storage'));
-      if (showDeviceConflictDialog) {
-        setShouldRefresh(true);
-      } else {
-        refreshTimeoutRef.current = setTimeout(() => {
-          window.location.replace('/');
-        }, 4000);
-      }
     } catch (err) {
       // AuthContext 已经捕获并处理了错误，设置了 authError
     } finally {
@@ -121,29 +79,15 @@ function Login() {
     }
   };
 
-  // 登录成功后清除定时器
-  useEffect(() => {
-    if (isAuthenticated && refreshTimer) {
-      clearInterval(refreshTimer);
-      setRefreshTimer(null);
-    }
-  }, [isAuthenticated, refreshTimer]);
-
   const handleForceLogout = async () => {
-    clearDeviceConflictDialog();
+    clearDeviceConflictDialog(); // 关闭对话框
     setLoading(true);
-    clearAuthError();
-    setLocalError('');
+    clearAuthError(); // 清除当前设备冲突错误，以便尝试强制登录
+    setLocalError(''); // 清除本地可能存在的错误
 
     try {
+      // 使用当前密码进行强制登出
       await login({ username, password, forceLogout: true });
-      if (showDeviceConflictDialog) {
-        setShouldRefresh(true);
-      } else {
-        refreshTimeoutRef.current = setTimeout(() => {
-          window.location.replace('/');
-        }, 4000);
-      }
     } catch (forceErr) {
       // AuthContext 会设置 authError，useEffect 会处理 localError
     } finally {
@@ -155,45 +99,10 @@ function Login() {
     clearDeviceConflictDialog(); // 关闭对话框
     clearAuthError(); // 清除设备冲突错误
     setLocalError('您的账号已在其他设备登录，请先退出其他设备的登录'); // 显示特定错误信息
-    setShouldRefresh(true); // 标记需要刷新
   };
-
-  // 监听弹窗出现，若有定时器则清除
-  useEffect(() => {
-    if (showDeviceConflictDialog && refreshTimeoutRef.current) {
-      clearTimeout(refreshTimeoutRef.current);
-      refreshTimeoutRef.current = null;
-    }
-  }, [showDeviceConflictDialog]);
-
-  // 监听弹窗关闭后刷新页面
-  useEffect(() => {
-    if (shouldRefresh && !showDeviceConflictDialog) {
-      setTimeout(() => {
-        window.location.replace('/');
-      }, 4000);
-    }
-  }, [shouldRefresh, showDeviceConflictDialog, setIsAuthenticated, setUser]);
 
   return (
     <Container component="main" maxWidth="md" sx={{ mt: 4 }}>
-      {/* 登录过渡弹窗 */}
-      <Modal
-        open={loading || authLoading}
-        aria-labelledby="transition-modal-title"
-        aria-describedby="transition-modal-description"
-        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}
-        disableAutoFocus
-        disableEnforceFocus
-        disableEscapeKeyDown
-      >
-        <Box sx={{ bgcolor: 'background.paper', p: 4, borderRadius: 2, boxShadow: 24, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <CircularProgress sx={{ mb: 2 }} />
-          <Typography id="transition-modal-title" variant="h6" component="h2">
-            正在登录，请稍候...
-          </Typography>
-        </Box>
-      </Modal>
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 3, boxShadow: 3, borderRadius: 2 }}>
         <Typography variant="h5" component="h1" gutterBottom sx={{ mb: 2 }}>
           登录
