@@ -364,16 +364,7 @@ function Home() {
     navigate(`/detail/${id}?fromPage=${currentPage}`);
   };
 
-  // 页面主内容渲染
-  if (postsLoading || adsLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Typography>加载中...</Typography>
-      </Box>
-    );
-  }
-
-  // 事件监听、公告弹窗等副作用逻辑延后
+  // 事件监听、公告弹窗等副作用逻辑，必须在顶层调用
   useEffect(() => {
     const handleShowSystemNotification = (event) => {
       const notificationData = event.detail;
@@ -389,6 +380,14 @@ function Home() {
       window.removeEventListener('showSystemNotificationDetail', handleShowSystemNotification);
     };
   }, []);
+
+  if (postsLoading || adsLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography>加载中...</Typography>
+      </Box>
+    );
+  }
 
   return (
     <>
