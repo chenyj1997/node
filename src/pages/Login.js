@@ -16,45 +16,54 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import Backdrop from '@mui/material/Backdrop';
 import Modal from '@mui/material/Modal';
 
 function Login() {
+  // Load initial state from localStorage for rememberMe and username
   const initialRememberMe = localStorage.getItem('rememberMe') === 'true';
   const initialUsername = initialRememberMe ? (localStorage.getItem('rememberedUsername') || '') : '';
+  // 从sessionStorage加载临时密码
   const initialPassword = sessionStorage.getItem('tempPassword') || '';
 
   const [username, setUsername] = useState(initialUsername);
   const [password, setPassword] = useState(initialPassword);
   const [rememberMe, setRememberMe] = useState(initialRememberMe);
   const [loading, setLoading] = useState(false);
-  const [localError, setLocalError] = useState('');
+  const [localError, setLocalError] = useState(''); // 用于Login组件内部的即时错误，如空输入
   const navigate = useNavigate();
-  const { login, isAuthenticated, user, authError, clearAuthError, showDeviceConflictDialog, clearDeviceConflictDialog, loading: authLoading, setIsAuthenticated, setUser } = useAuth();
+  // 从AuthContext获取状态和方法
+  const { login, isAuthenticated, authError, clearAuthError, showDeviceConflictDialog, clearDeviceConflictDialog, loading: authLoading, setIsAuthenticated, setUser } = useAuth();
+  const [refreshTimer, setRefreshTimer] = useState(null);
   const [shouldRefresh, setShouldRefresh] = useState(false);
   const refreshTimeoutRef = useRef(null);
 
+  // 监听密码变化，保存到sessionStorage
   useEffect(() => {
     if (password) {
       sessionStorage.setItem('tempPassword', password);
     }
   }, [password]);
 
+  // 如果已经认证，清除临时密码并跳转到首页
   useEffect(() => {
+    console.log('isAuthenticated:', isAuthenticated, 'authLoading:', authLoading);
     if (isAuthenticated && !authLoading) {
       sessionStorage.removeItem('tempPassword');
       navigate('/home', { replace: true });
     }
   }, [isAuthenticated, authLoading, navigate]);
 
+  // 处理AuthContext中的全局认证错误，并控制localError显示
   useEffect(() => {
     if (authError) {
+      // 如果是设备冲突错误，AuthContext 会处理 showDeviceConflictDialog，这里只需关注其他错误
       if (!(authError.message && authError.message.includes('已在其他设备登录') && authError.code === 'DEVICE_CONFLICT')) {
         setLocalError(authError.message || '登录失败，请稍后再试。');
       } else {
-        setLocalError('');
+        setLocalError(''); // 设备冲突错误不显示在localError中
       }
     } else {
+      // 没有全局认证错误时，清除本地错误
       setLocalError('');
     }
   }, [authError]);
@@ -112,6 +121,14 @@ function Login() {
     }
   };
 
+  // 登录成功后清除定时器
+  useEffect(() => {
+    if (isAuthenticated && refreshTimer) {
+      clearInterval(refreshTimer);
+      setRefreshTimer(null);
+    }
+  }, [isAuthenticated, refreshTimer]);
+
   const handleForceLogout = async () => {
     clearDeviceConflictDialog();
     setLoading(true);
@@ -135,10 +152,10 @@ function Login() {
   };
 
   const handleCancelForceLogout = () => {
-    clearDeviceConflictDialog();
-    clearAuthError();
-    setLocalError('您的账号已在其他设备登录，请先退出其他设备的登录');
-    setShouldRefresh(true);
+    clearDeviceConflictDialog(); // 关闭对话框
+    clearAuthError(); // 清除设备冲突错误
+    setLocalError('您的账号已在其他设备登录，请先退出其他设备的登录'); // 显示特定错误信息
+    setShouldRefresh(true); // 标记需要刷新
   };
 
   // 监听弹窗出现，若有定时器则清除
@@ -156,7 +173,7 @@ function Login() {
         window.location.replace('/');
       }, 4000);
     }
-  }, [shouldRefresh, showDeviceConflictDialog]);
+  }, [shouldRefresh, showDeviceConflictDialog, setIsAuthenticated, setUser]);
 
   return (
     <Container component="main" maxWidth="md" sx={{ mt: 4 }}>
@@ -266,7 +283,7 @@ function Login() {
 
       {/* 确认对话框 - 根据 AuthContext 中的 showDeviceConflictDialog 状态显示 */}
       <Dialog
-        open={showDeviceConflictDialog}
+        open={showDeviceConflictDialog} // 现在由 AuthContext 中的状态控制
         onClose={handleCancelForceLogout}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
@@ -292,4 +309,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Login; 
