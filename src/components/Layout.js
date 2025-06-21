@@ -198,6 +198,7 @@ function Layout({ children }) {
   // 定义需要显示返回按钮的以特定前缀开头的路径
   const startsWithSpecialPaths = [
     '/recharge-paths',
+    '/invited-users',
   ];
 
   // 综合判断是否为特殊页面
