@@ -93,77 +93,60 @@ function InvitedUserDetail() {
           {error}
         </Alert>
       ) : (
-        <>
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="h6" gutterBottom>
-                    用户信息
-                  </Typography>
-                  <Typography variant="body1">
-                    用户名: {invitedUser?.username}
-                  </Typography>
-                  <Typography variant="body1">
-                    注册时间: {new Date(invitedUser?.createdAt).toLocaleString()}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="h6" gutterBottom>
-                    信息购买统计
-                  </Typography>
-                  <Typography variant="body1">
-                    总购买金额: ¥{totalAmount.toFixed(2)}
-                  </Typography>
-                  <Typography variant="body1">
-                    购买笔数: {transactions.length}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-
-          <Typography variant="h6" gutterBottom>
-            信息购买记录
-          </Typography>
-          
-          {transactions.length === 0 ? (
-            <Alert severity="info" sx={{ mt: 2 }}>
-              暂无信息购买记录
-            </Alert>
-          ) : (
-            <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
-              <Table sx={{ minWidth: 400 }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>交易类型</TableCell>
-                    <TableCell>金额</TableCell>
-                    <TableCell>状态</TableCell>
-                    <TableCell>交易时间</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {transactions.map((transaction) => (
-                    <TableRow key={transaction._id}>
-                      <TableCell>
-                        信息购买
-                      </TableCell>
-                      <TableCell>¥{transaction.amount.toFixed(2)}</TableCell>
-                      <TableCell>
-                        {transaction.status === 'approved' ? '已通过' :
-                         transaction.status === 'pending' ? '待审核' :
-                         transaction.status === 'rejected' ? '已拒绝' : '未知'}
-                      </TableCell>
-                      <TableCell>
-                        {new Date(transaction.createdAt).toLocaleString()}
-                      </TableCell>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              信息购买统计与记录
+            </Typography>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body1">
+                总购买金额: ¥{totalAmount.toFixed(2)}
+              </Typography>
+              <Typography variant="body1">
+                购买笔数: {transactions.length}
+              </Typography>
+            </Box>
+            <Typography variant="subtitle1" gutterBottom>
+              信息购买记录
+            </Typography>
+            {transactions.length === 0 ? (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                暂无信息购买记录
+              </Alert>
+            ) : (
+              <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+                <Table sx={{ minWidth: 400 }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>交易类型</TableCell>
+                      <TableCell>金额</TableCell>
+                      <TableCell>状态</TableCell>
+                      <TableCell>交易时间</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </>
+                  </TableHead>
+                  <TableBody>
+                    {transactions.map((transaction) => (
+                      <TableRow key={transaction._id}>
+                        <TableCell>
+                          信息购买
+                        </TableCell>
+                        <TableCell>¥{transaction.amount.toFixed(2)}</TableCell>
+                        <TableCell>
+                          {transaction.status === 'approved' ? '已通过' :
+                           transaction.status === 'pending' ? '待审核' :
+                           transaction.status === 'rejected' ? '已拒绝' : '未知'}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(transaction.createdAt).toLocaleString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </CardContent>
+        </Card>
       )}
     </Container>
   );
