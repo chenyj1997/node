@@ -77,10 +77,8 @@ function Layout({ children }) {
   // 获取最新的系统通知 (仅在首页)
   useEffect(() => {
     const fetchLatestSystemNotification = async () => {
-      console.log('当前路径:', location.pathname);
       if (location.pathname === '/home') {
         try {
-          console.log('开始获取系统通知...');
           const response = await apiService.notificationService.getSystemNotifications({
             type: 'SYSTEM',
             status: 'ACTIVE',
@@ -89,10 +87,7 @@ function Layout({ children }) {
             sortOrder: 'desc'
           });
 
-          console.log('系统通知响应:', response);
-
           if (response && response.data && response.data.length > 0) {
-            console.log('找到系统通知:', response.data[0]);
             setLatestSystemNotification(response.data[0]);
 
             // 检查是否需要自动弹出
@@ -117,7 +112,6 @@ function Layout({ children }) {
               }, 1000);
             }
           } else {
-            console.log('没有找到系统通知或数据格式不正确');
             setLatestSystemNotification(null);
           }
         } catch (error) {
@@ -125,7 +119,6 @@ function Layout({ children }) {
           setLatestSystemNotification(null);
         }
       } else {
-        console.log('不在首页，清除系统通知');
         setLatestSystemNotification(null);
       }
     };
@@ -350,13 +343,6 @@ function Layout({ children }) {
               查看详情
             </MuiLink>
           </Paper>
-        )}
-        {/* 调试信息 */}
-        {location.pathname === '/home' && (
-          <div style={{ fontSize: '12px', color: 'red', padding: '4px', backgroundColor: '#fff3cd' }}>
-            调试信息: 路径={location.pathname}, 通知={latestSystemNotification ? '有' : '无'}
-            {latestSystemNotification && `, 标题=${latestSystemNotification.title}`}
-          </div>
         )}
 
         <Container 
