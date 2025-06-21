@@ -190,7 +190,7 @@ function Profile() {
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: false // Use 24-hour format
-                        }).format(new Date(info.createdAt))}
+                        }).format(new Date(info.purchaseTime))}
                       </TableCell>
                       <TableCell sx={{ padding: '8px', fontWeight: 'bold', color: 'green', textAlign: 'right' }}>{info.repaymentAmount || 'N/A'}</TableCell>
                       <TableCell sx={{ padding: '8px' }}>
