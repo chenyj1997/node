@@ -16,11 +16,6 @@ const api = axios.create({
 // 请求拦截器
 api.interceptors.request.use(
     (config) => {
-        // --- 添加日志 ---
-        const fullUrl = `${config.baseURL}${config.url}`;
-        console.log(`[API Request] Sending ${config.method.toUpperCase()} request to: ${fullUrl}`);
-        // --- 日志结束 ---
-        
         // 确保使用HTTPS
         if (config.url && config.url.startsWith('http://')) {
             config.url = config.url.replace('http://', 'https://');
@@ -41,49 +36,19 @@ api.interceptors.request.use(
 
 // 响应拦截器
 api.interceptors.response.use(
-    (response) => {
-        return response.data;
-    },
+    (response) => response.data,
     async (error) => {
-        console.error('响应错误:', error);
-        
-        // 检查是否是登录请求
         const isLoginRequest = error.config?.url?.includes('/auth/login');
-        
         if (error.response) {
-            console.error('错误响应:', {
-                status: error.response.status,
-                data: JSON.stringify(error.response.data),
-                headers: error.response.headers
-            });
-            
-            // 如果是登录请求，直接返回错误响应
-            if (isLoginRequest && error.response.status !== 401 && error.response.status !== 403 && error.response.status !== 429) {
-                return Promise.reject(error);
+            // 只对非登录请求做自动跳转
+            if (!isLoginRequest && (error.response.status === 401 || error.response.status === 403 || error.response.status === 429)) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login';
+                return; // 防止后续 Promise.reject
             }
-            
-            // 处理特定状态码的错误信息
-            if (error.response.status === 401 || error.response.status === 403 || error.response.status === 429) {
-                if (!isLoginRequest && error.response.status === 401) {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
-                    window.location.href = '/login';
-                }
-                return Promise.reject(error);
-            }
-        } else if (error.request) {
-            console.error('网络错误: 没有收到响应');
-            console.error('请求配置:', {
-                url: error.config.url,
-                method: error.config.method,
-                baseURL: error.config.baseURL,
-                headers: error.config.headers,
-                timeout: error.config.timeout
-            });
-        } else {
-            console.error('请求配置错误:', error.message);
         }
-        
+        // 其他情况交给页面自己处理（比如弹窗）
         return Promise.reject(error);
     }
 );
@@ -164,9 +129,14 @@ const apiService = {
             },
         }).then(response => response),
         createWithdraw: (formData) => api.post('/wallet/withdraw', formData, {
-            // headers: {
-            //     'Content-Type': 'multipart/form-data',
-            // },
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+            timeout: 60000, // 增加超时时间到60秒
+            onUploadProgress: (progressEvent) => {
+                const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                console.log('提现上传进度:', percentCompleted + '%');
+            }
         }).then(response => response),
         getTransactions: (params) => {
             // 只有在明确传入参数时才添加查询参数
