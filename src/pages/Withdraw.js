@@ -75,19 +75,41 @@ function Withdraw() {
     if (file) {
       // 验证文件类型
       if (!file.type.startsWith('image/')) {
-        setError('请上传图片文件');
+        setError('请上传图片文件（支持JPG、PNG、GIF、WEBP格式）');
+        event.target.value = ''; // 清空文件选择
         return;
       }
+      
       // 验证文件大小（限制为5MB）
       if (file.size > 5 * 1024 * 1024) {
-        setError('图片大小不能超过5MB');
+        setError('图片大小不能超过5MB，请选择更小的文件');
+        event.target.value = ''; // 清空文件选择
         return;
       }
+      
+      // 验证文件扩展名
+      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+      const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+      if (!allowedExtensions.includes(fileExtension)) {
+        setError('请上传支持的图片格式：JPG、PNG、GIF、WEBP');
+        event.target.value = ''; // 清空文件选择
+        return;
+      }
+      
       setQrcodeFile(file);
       // 创建预览URL
       const previewUrl = URL.createObjectURL(file);
       setQrcodePreview(previewUrl);
       setError(''); // 清除之前的错误信息
+      console.log('提现二维码已选择:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+    } else {
+      setQrcodeFile(null);
+      setQrcodePreview(null);
+      // 不设置错误，因为二维码是选填的
     }
   };
 
@@ -227,7 +249,10 @@ function Withdraw() {
         {/* 二维码上传区域 */}
         <Box sx={{ width: '100%', mb: 2 }}>
           <Typography variant="subtitle1" gutterBottom>
-            上传提现二维码
+            上传提现二维码 <span style={{ color: 'gray', fontSize: '0.9em' }}>(选填)</span>
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            请上传您的收款二维码，方便系统处理提现申请
           </Typography>
           <input
             accept="image/*"
@@ -243,7 +268,7 @@ function Withdraw() {
               fullWidth
               sx={{ mb: 2 }}
             >
-              选择二维码图片
+              选择提现二维码图片
             </Button>
           </label>
           {qrcodePreview && (
