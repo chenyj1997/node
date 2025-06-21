@@ -63,9 +63,9 @@ function OperationResult() {
           </Button>
           <Button
             variant="outlined"
-            onClick={() => navigate('/transactions')}
+            onClick={() => navigate('/notifications')}
           >
-            查看交易记录
+            查看交易通知
           </Button>
         </Box>
       </Paper>
