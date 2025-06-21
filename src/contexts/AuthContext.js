@@ -129,11 +129,8 @@ export const AuthProvider = ({ children }) => {
       if (error.response?.status === 403 && backendErrorData.message && backendErrorData.message.includes('已在其他设备登录') && backendErrorData.code === 'DEVICE_CONFLICT') {
         setShowDeviceConflictDialog(true);
       }
-
-      setLoading(false); // 确保在错误时也关闭加载状态
-      // 不再在此处直接抛出错误，而是通过 authError 状态传递
     } finally {
-      // setLoading(false); // 已经在 catch 块中处理，避免重复
+      setLoading(false); // 确保在所有情况下都关闭加载状态
     }
   };
 
