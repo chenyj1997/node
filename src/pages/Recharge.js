@@ -211,7 +211,7 @@ function Recharge() {
             margin="normal"
             fullWidth
             label="收款人"
-            value={rechargePath.account}
+            value={rechargePath.receiver}
             InputProps={{ readOnly: true }}
             sx={{ mb: 1 }}
           />
@@ -219,7 +219,7 @@ function Recharge() {
             margin="normal"
             fullWidth
             label="收款账号"
-            value={rechargePath.receiver}
+            value={rechargePath.account}
             InputProps={{ readOnly: true }}
             sx={{ mb: 2 }}
           />
