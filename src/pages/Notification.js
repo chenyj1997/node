@@ -107,8 +107,8 @@ function Notification() {
   };
 
   const handleTransactionClick = (transaction) => {
-    if (transaction.type === 'purchase' && transaction.infoId) {
-      navigate(`/detail/${transaction.infoId}`);
+    if (transaction.type === 'purchase' && transaction.relatedInfo) {
+      navigate(`/detail/${transaction.relatedInfo}`);
     }
     // For other types, do nothing or handle as needed
   };
