@@ -106,6 +106,13 @@ function Notification() {
     navigate('/customer-service');
   };
 
+  const handleTransactionClick = (transaction) => {
+    if (transaction.type === 'purchase' && transaction.infoId) {
+      navigate(`/detail/${transaction.infoId}`);
+    }
+    // For other types, do nothing or handle as needed
+  };
+
   if (loadingTransactions) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
@@ -159,7 +166,20 @@ function Notification() {
           <List disablePadding>
             {displayedTransactions.map((tx, index) => (
               <React.Fragment key={tx._id || index}>
-                <ListItem sx={{ py: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative' }}>
+                <ListItem 
+                  sx={{ 
+                    py: 2, 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'flex-start', 
+                    position: 'relative',
+                    cursor: tx.type === 'purchase' ? 'pointer' : 'default',
+                    '&:hover': {
+                      backgroundColor: tx.type === 'purchase' ? 'action.hover' : 'transparent',
+                    }
+                  }}
+                  onClick={() => handleTransactionClick(tx)}
+                >
                   <ListItemText
                     primary={
                       <Typography variant="subtitle1">
