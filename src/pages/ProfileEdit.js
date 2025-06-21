@@ -159,11 +159,11 @@ function ProfileEdit() {
                     }}
                     margin="normal"
                   />
-                  {user.numericId && (
+                  {user.inviteCode && (
                     <TextField
                       fullWidth
                       label="邀请码"
-                      value={user.numericId}
+                      value={user.inviteCode}
                       InputProps={{
                         readOnly: true,
                       }}
