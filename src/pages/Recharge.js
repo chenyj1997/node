@@ -30,8 +30,15 @@ function Recharge() {
     if (selectedPath && selectedPath._id === pathId) {
         setRechargePath(selectedPath);
 
-        if (selectedPath.qrCodeUrl) {
-            setQrCodeImageUrl(baseStaticURL + selectedPath.qrCodeUrl);
+        // 处理二维码URL - 支持Cloudinary URL和相对路径
+        if (selectedPath.qrCode) {
+            // 如果是完整的URL（包含http或https），直接使用
+            if (selectedPath.qrCode.startsWith('http://') || selectedPath.qrCode.startsWith('https://')) {
+                setQrCodeImageUrl(selectedPath.qrCode);
+            } else {
+                // 如果是相对路径，添加baseStaticURL
+                setQrCodeImageUrl(baseStaticURL + selectedPath.qrCode);
+            }
         } else {
              setQrCodeImageUrl(null);
         }
@@ -44,8 +51,16 @@ function Recharge() {
                 const response = await apiService.rechargeService.getRechargePath(pathId);
                 if (response.success && response.data) {
                     setRechargePath(response.data);
-                    if (response.data.qrCodeUrl) {
-                        setQrCodeImageUrl(baseStaticURL + response.data.qrCodeUrl);
+                    
+                    // 处理二维码URL - 支持Cloudinary URL和相对路径
+                    if (response.data.qrCode) {
+                        // 如果是完整的URL（包含http或https），直接使用
+                        if (response.data.qrCode.startsWith('http://') || response.data.qrCode.startsWith('https://')) {
+                            setQrCodeImageUrl(response.data.qrCode);
+                        } else {
+                            // 如果是相对路径，添加baseStaticURL
+                            setQrCodeImageUrl(baseStaticURL + response.data.qrCode);
+                        }
                     } else {
                         setQrCodeImageUrl(null);
                     }
