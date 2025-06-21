@@ -45,10 +45,9 @@ api.interceptors.response.use(
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
                 window.location.href = '/login';
-                return; // 防止后续 Promise.reject
             }
         }
-        // 其他情况交给页面自己处理（比如弹窗）
+        // 所有错误都应该抛出，让调用方处理
         return Promise.reject(error);
     }
 );
