@@ -34,8 +34,11 @@ function RechargePaths() {
     try {
       // 调用获取充值路径的API
       const response = await apiService.transactionService.getRechargePaths();
+      console.log('充值路径API响应:', response);
+      
       // 假设后端返回的数据结构类似安卓：{ success: true, data: [...] }
       if (response.success && Array.isArray(response.data)) {
+        console.log('充值路径数据:', response.data);
         setRechargePaths(response.data);
       } else {
         console.error('获取充值路径失败: 数据格式错误', response);
@@ -111,7 +114,28 @@ function RechargePaths() {
             <Box>
               {rechargePaths.map((path) => {
                 const iconPath = path.displayIcon || path.icon;
-                const fullIconSrc = iconPath ? baseStaticURL + iconPath : null;
+                console.log('充值路径图标调试:', {
+                  pathName: path.name,
+                  iconField: iconPath,
+                  hasIcon: !!iconPath
+                });
+                
+                // 处理图标URL - 支持Cloudinary URL和相对路径
+                let fullIconSrc = null;
+                if (iconPath) {
+                  // 如果是完整的URL（包含http或https），直接使用
+                  if (iconPath.startsWith('http://') || iconPath.startsWith('https://')) {
+                    fullIconSrc = iconPath;
+                    console.log('使用完整URL:', fullIconSrc);
+                  } else {
+                    // 如果是相对路径，添加baseStaticURL
+                    fullIconSrc = baseStaticURL + iconPath;
+                    console.log('使用相对路径:', fullIconSrc);
+                  }
+                } else {
+                  console.log('没有图标，使用默认图标');
+                }
+                
                 return (
                   <Card key={path._id} sx={{ mb: 2, cursor: 'pointer' }} onClick={() => handlePathClick(path)}>
                     <CardContent>
@@ -119,7 +143,19 @@ function RechargePaths() {
                         {/* 图标 */}
                         <Box sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>
                           {fullIconSrc ? (
-                            <img src={fullIconSrc} alt={path.name} width={40} height={40} onError={(e) => { e.target.style.display = 'none'; }} />
+                            <img 
+                              src={fullIconSrc} 
+                              alt={path.name} 
+                              width={40} 
+                              height={40} 
+                              onError={(e) => { 
+                                console.error('图标加载失败:', fullIconSrc);
+                                e.target.style.display = 'none'; 
+                              }}
+                              onLoad={() => {
+                                console.log('图标加载成功:', fullIconSrc);
+                              }}
+                            />
                           ) : (
                             // 没有图标时使用默认或不显示
                             <WalletIcon sx={{ width: 40, height: 40, color: 'text.secondary' }} />
