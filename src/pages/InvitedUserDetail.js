@@ -76,13 +76,7 @@ function InvitedUserDetail() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 3, px: { xs: 1, sm: 2, md: 3 } }}>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => navigate('/invited-users')}
-        sx={{ mb: 3 }}
-      >
-        返回列表
-      </Button>
+      {/* 顶部返回按钮已移除，建议用首页 AppBar 的返回图标 */}
 
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
