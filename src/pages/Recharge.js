@@ -130,16 +130,37 @@ function Recharge() {
     if (file) {
       // 验证文件类型
       if (!file.type.startsWith('image/')) {
-        setError('请上传图片文件');
+        setError('请上传图片文件（支持JPG、PNG、GIF、WEBP格式）');
+        e.target.value = ''; // 清空文件选择
         return;
       }
+      
       // 验证文件大小（限制为5MB）
       if (file.size > 5 * 1024 * 1024) {
-        setError('图片大小不能超过5MB');
+        setError('图片大小不能超过5MB，请选择更小的文件');
+        e.target.value = ''; // 清空文件选择
         return;
       }
+      
+      // 验证文件扩展名
+      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+      const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+      if (!allowedExtensions.includes(fileExtension)) {
+        setError('请上传支持的图片格式：JPG、PNG、GIF、WEBP');
+        e.target.value = ''; // 清空文件选择
+        return;
+      }
+      
       setScreenshotFile(file);
       setError(''); // 清除之前的错误信息
+      console.log('充值交易截图已选择:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+    } else {
+      setScreenshotFile(null);
+      setError('请选择充值交易截图');
     }
   };
 
@@ -225,7 +246,10 @@ function Recharge() {
         {/* 交易截图上传 */}
         <Box sx={{ width: '100%', mb: 2 }}>
           <Typography variant="subtitle1" gutterBottom>
-            上传交易截图
+            上传充值交易截图 <span style={{ color: 'red' }}>*</span>
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            请上传转账成功的截图作为充值凭证，此项目为必填项
           </Typography>
           <input
             accept="image/*"
@@ -233,6 +257,7 @@ function Recharge() {
             id="screenshot-upload"
             type="file"
             onChange={handleFileChange}
+            required
           />
           <label htmlFor="screenshot-upload">
             <Button
@@ -241,7 +266,7 @@ function Recharge() {
               fullWidth
               sx={{ mb: 2 }}
             >
-              选择截图
+              选择充值交易截图
             </Button>
           </label>
           {screenshotFile && (
@@ -249,7 +274,7 @@ function Recharge() {
               <CardMedia
                 component="img"
                 image={URL.createObjectURL(screenshotFile)}
-                alt="交易截图预览"
+                alt="充值交易截图预览"
                 sx={{ maxHeight: 200, objectFit: 'contain' }}
               />
             </Card>
