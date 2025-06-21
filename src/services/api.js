@@ -150,6 +150,7 @@ const apiService = {
 
     // 充值服务
     rechargeService: {
+        getRechargePath: (pathId) => api.get(`/recharge-paths/${pathId}`).then(response => response),
         submitRechargeOrder: (formData) => {
             console.log('准备发送充值请求，FormData内容:', {
                 pathId: formData.get('pathId'),
