@@ -19,72 +19,41 @@ import { useAuth } from '../contexts/AuthContext';
 import Modal from '@mui/material/Modal';
 
 function Login() {
-  // Load initial state from localStorage for rememberMe and username
   const initialRememberMe = localStorage.getItem('rememberMe') === 'true';
   const initialUsername = initialRememberMe ? (localStorage.getItem('rememberedUsername') || '') : '';
-  // 从sessionStorage加载临时密码
   const initialPassword = sessionStorage.getItem('tempPassword') || '';
 
   const [username, setUsername] = useState(initialUsername);
   const [password, setPassword] = useState(initialPassword);
   const [rememberMe, setRememberMe] = useState(initialRememberMe);
   const [loading, setLoading] = useState(false);
-  const [localError, setLocalError] = useState(''); // 用于Login组件内部的即时错误，如空输入
+  const [localError, setLocalError] = useState('');
   const navigate = useNavigate();
-  // 从AuthContext获取状态和方法
-  const { login, isAuthenticated, authError, clearAuthError, showDeviceConflictDialog, clearDeviceConflictDialog, loading: authLoading, setIsAuthenticated, setUser } = useAuth();
-  const [refreshTimer, setRefreshTimer] = useState(null);
-  const [shouldRefresh, setShouldRefresh] = useState(false);
-  const refreshTimeoutRef = useRef(null);
+  const { login, isAuthenticated, authError, clearAuthError, showDeviceConflictDialog, clearDeviceConflictDialog, loading: authLoading } = useAuth();
 
-  // 监听密码变化，保存到sessionStorage
   useEffect(() => {
     if (password) {
       sessionStorage.setItem('tempPassword', password);
+    } else {
+      sessionStorage.removeItem('tempPassword');
     }
   }, [password]);
 
-  // 如果已经认证，清除临时密码并跳转到首页
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    console.log('isAuthenticated:', isAuthenticated, 'authLoading:', authLoading);
     if (isAuthenticated && !authLoading) {
-      sessionStorage.removeItem('tempPassword');
       navigate('/home', { replace: true });
     }
-  }, [isAuthenticated, authLoading, navigate, setIsAuthenticated, setUser]);
+  }, [isAuthenticated, authLoading, navigate]);
 
-  // 处理AuthContext中的全局认证错误，并控制localError显示
   useEffect(() => {
     if (authError) {
-      // 如果是设备冲突错误，AuthContext 会处理 showDeviceConflictDialog，这里只需关注其他错误
       if (!(authError.message && authError.message.includes('已在其他设备登录') && authError.code === 'DEVICE_CONFLICT')) {
         setLocalError(authError.message || '登录失败，请稍后再试。');
       } else {
-        setLocalError(''); // 设备冲突错误不显示在localError中
+        setLocalError('');
       }
-    } else {
-      // 没有全局认证错误时，清除本地错误
-      setLocalError('');
     }
   }, [authError]);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const token = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
-      if (token && storedUser) {
-        setIsAuthenticated(true);
-        setUser(JSON.parse(storedUser));
-      } else {
-        setIsAuthenticated(false);
-        setUser(null);
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [setIsAuthenticated, setUser]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -96,7 +65,6 @@ function Login() {
     setLoading(true);
     setLocalError('');
     clearAuthError();
-    clearDeviceConflictDialog();
 
     if (rememberMe) {
       localStorage.setItem('rememberMe', 'true');
@@ -108,28 +76,12 @@ function Login() {
 
     try {
       await login({ username, password });
-      window.dispatchEvent(new Event('storage'));
-      if (showDeviceConflictDialog) {
-        setShouldRefresh(true);
-      } else {
-        refreshTimeoutRef.current = setTimeout(() => {
-          window.location.replace('/');
-        }, 4000);
-      }
     } catch (err) {
-      // AuthContext 已经捕获并处理了错误，设置了 authError
+      // Errors are handled by the authError state
     } finally {
       setLoading(false);
     }
   };
-
-  // 登录成功后清除定时器
-  useEffect(() => {
-    if (isAuthenticated && refreshTimer) {
-      clearInterval(refreshTimer);
-      setRefreshTimer(null);
-    }
-  }, [isAuthenticated, refreshTimer]);
 
   const handleForceLogout = async () => {
     clearDeviceConflictDialog();
@@ -139,48 +91,21 @@ function Login() {
 
     try {
       await login({ username, password, forceLogout: true });
-      if (showDeviceConflictDialog) {
-        setShouldRefresh(true);
-      } else {
-        refreshTimeoutRef.current = setTimeout(() => {
-          window.location.replace('/');
-        }, 4000);
-      }
     } catch (forceErr) {
-      // AuthContext 会设置 authError，useEffect 会处理 localError
+      // Errors are handled by the authError state
     } finally {
       setLoading(false);
     }
   };
 
   const handleCancelForceLogout = () => {
-    clearDeviceConflictDialog(); // 关闭对话框
-    clearAuthError(); // 清除设备冲突错误
-    setLocalError('您的账号已在其他设备登录，请先退出其他设备的登录'); // 显示特定错误信息
-    setShouldRefresh(true); // 标记需要刷新
+    clearDeviceConflictDialog();
+    clearAuthError();
+    setLocalError('您的账号已在其他设备登录，请先退出其他设备的登录');
   };
-
-  // 监听弹窗出现，若有定时器则清除
-  useEffect(() => {
-    if (showDeviceConflictDialog && refreshTimeoutRef.current) {
-      clearTimeout(refreshTimeoutRef.current);
-      refreshTimeoutRef.current = null;
-    }
-  }, [showDeviceConflictDialog]);
-
-  // 监听弹窗关闭后刷新页面
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (shouldRefresh && !showDeviceConflictDialog) {
-      setTimeout(() => {
-        window.location.replace('/');
-      }, 4000);
-    }
-  }, [shouldRefresh, showDeviceConflictDialog, setIsAuthenticated, setUser]);
 
   return (
     <Container component="main" maxWidth="md" sx={{ mt: 4 }}>
-      {/* 登录过渡弹窗 */}
       <Modal
         open={loading || authLoading}
         aria-labelledby="transition-modal-title"
@@ -219,6 +144,7 @@ function Login() {
               borderRadius: 1,
               width: '100%'
             }}
+            onClose={() => setLocalError('')}
           >
             {localError}
           </Alert>
@@ -236,7 +162,7 @@ function Login() {
             autoFocus
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            error={!!localError}
+            error={!!localError && !authError}
             sx={{ mb: 2 }}
           />
           <TextField
@@ -250,7 +176,7 @@ function Login() {
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            error={!!localError}
+            error={!!localError && !authError}
             sx={{ mb: 2 }}
           />
           <FormControlLabel
@@ -270,9 +196,9 @@ function Login() {
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
-            disabled={loading}
+            disabled={loading || authLoading}
           >
-            {loading ? <CircularProgress size={24} /> : '登录'}
+            {loading || authLoading ? <CircularProgress size={24} /> : '登录'}
           </Button>
           <Box sx={{ textAlign: 'center' }}>
             <Link to="/register" style={{ textDecoration: 'none' }}>
@@ -284,9 +210,8 @@ function Login() {
         </form>
       </Box>
 
-      {/* 确认对话框 - 根据 AuthContext 中的 showDeviceConflictDialog 状态显示 */}
       <Dialog
-        open={showDeviceConflictDialog} // 现在由 AuthContext 中的状态控制
+        open={showDeviceConflictDialog}
         onClose={handleCancelForceLogout}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
