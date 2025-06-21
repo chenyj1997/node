@@ -84,6 +84,19 @@ function Notification() {
     return statuses[String(status).toLowerCase()] || String(status).toUpperCase();
   };
 
+  const getPaymentMethodDisplay = (method) => {
+    const upperMethod = String(method || '').toUpperCase();
+    const methods = {
+      'INTERNAL_SETTLEMENT': '内部结算',
+      'ALIPAY': '支付宝',
+      'WECHAT': '微信',
+      'BANK': '银行卡',
+      'BALANCE': '余额',
+      'CASH': '现金',
+    };
+    return methods[upperMethod] || method || '--';
+  };
+
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
@@ -189,7 +202,7 @@ function Notification() {
                               color="text.secondary"
                               sx={{ display: 'block' }}
                             >
-                              方式: {tx.paymentMethod}
+                              方式: {getPaymentMethodDisplay(tx.paymentMethod)}
                             </Typography>
                           )}
                         </Box>
