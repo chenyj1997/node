@@ -45,6 +45,7 @@ function Login() {
   }, [password]);
 
   // 如果已经认证，清除临时密码并跳转到首页
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     console.log('isAuthenticated:', isAuthenticated, 'authLoading:', authLoading);
     if (isAuthenticated && !authLoading) {
@@ -68,6 +69,7 @@ function Login() {
     }
   }, [authError]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const handleStorageChange = () => {
       const token = localStorage.getItem('token');
@@ -82,7 +84,7 @@ function Login() {
     };
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  }, [setIsAuthenticated, setUser]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -167,6 +169,7 @@ function Login() {
   }, [showDeviceConflictDialog]);
 
   // 监听弹窗关闭后刷新页面
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (shouldRefresh && !showDeviceConflictDialog) {
       setTimeout(() => {
