@@ -107,11 +107,11 @@ function WalletPage() {
                     <Typography
                       variant="h6"
                       sx={{
-                        color: tx.amount < 0 ? 'error.main' : 'success.main',
+                        color: isExpense(tx.type) ? 'error.main' : 'success.main',
                         fontWeight: 600
                       }}
                     >
-                      {tx.amount > 0 ? '+' : ''}{tx.amount ? tx.amount.toFixed(2) : '0.00'}
+                      {isExpense(tx.type) ? '-' : '+'}{tx.amount ? tx.amount.toFixed(2) : '0.00'}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
                       余额: ￥{typeof tx.status === 'string'
