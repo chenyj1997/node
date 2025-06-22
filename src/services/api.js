@@ -186,6 +186,7 @@ const apiService = {
         getMessages: (userId) => api.get(`/customer-service/messages/${userId}`).then(response => response),
         sendMessage: (data) => api.post('/customer-service/messages', data).then(response => response),
         markMessageAsRead: (messageId) => api.put(`/customer-service/messages/${messageId}/read`).then(response => response),
+        markAllCSMessagesAsRead: () => api.post('/customer-service/messages/mark-all-as-read').then(response => response),
         getUnreadCount: () => api.get('/customer-service/unread-count').then(response => response),
         uploadImage: (file) => {
             const formData = new FormData();
@@ -201,6 +202,8 @@ const apiService = {
     // Notification Service (New)
     notificationService: {
         getSystemNotifications: (params) => api.get('/notifications/list', { params }).then(response => response),
+        getUnreadCount: () => api.get('/notifications/unread/count').then(response => response),
+        markNotificationAsRead: (notificationId) => api.put(`/notifications/${notificationId}/read`).then(response => response),
         // Add other notification related methods here if needed later
     },
 
