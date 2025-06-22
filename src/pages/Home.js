@@ -365,13 +365,21 @@ function Home() {
 
   // 事件监听、公告弹窗等副作用逻辑，必须在顶层调用
   useEffect(() => {
-    const handleShowSystemNotification = (event) => {
+    const handleShowSystemNotification = async (event) => {
       const notificationData = event.detail;
       if (notificationData && notificationData.notification) {
         setAnnouncements([notificationData.notification]);
         setCurrentAnnouncementIndex(0);
         setShowAnnouncementModal(true);
         setDontShowToday(notificationData.dontShowTodayStatus || false);
+        
+        // 用户已经看到通知了，自动标记为已读
+        try {
+          await apiService.notificationService.markNotificationAsRead(notificationData.notification._id);
+          console.log('系统通知已标记为已读:', notificationData.notification._id);
+        } catch (error) {
+          console.error('标记系统通知为已读失败:', error);
+        }
       }
     };
     window.addEventListener('showSystemNotificationDetail', handleShowSystemNotification);
