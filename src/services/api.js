@@ -189,13 +189,26 @@ const apiService = {
         markAllCSMessagesAsRead: () => api.post('/customer-service/messages/mark-all-as-read').then(response => response),
         getUnreadCount: () => api.get('/customer-service/unread-count').then(response => response),
         uploadImage: (file) => {
+            console.log('Preparing to upload image to local storage:', file.name);
             const formData = new FormData();
             formData.append('file', file);
-            return api.post('/info/upload/image', formData, {
+            
+            return api.post('/customer-service/upload/image', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
-            }).then(response => response);
+                timeout: 30000, // 30秒超时
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    console.log('Image upload progress:', percentCompleted + '%');
+                }
+            }).then(response => {
+                console.log('Image upload successful, response:', response);
+                return response;
+            }).catch(error => {
+                console.error('Image upload failed:', error);
+                throw error;
+            });
         },
     },
 
