@@ -123,19 +123,19 @@ function CustomerServicePage() {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
 
-    console.log('Selected file for upload:', file.name);
+    console.log('Selected file for upload:', file.name, 'Size:', file.size, 'Type:', file.type);
     setSending(true);
     setError(null);
 
     try {
-      // 1. Upload file to server
-      // apiService.customerService.uploadImage now handles FormData creation and appending 'file'
+      // 1. Upload file to server using local storage (not Cloudinary)
+      console.log('Uploading image to local storage...');
       const uploadResponse = await apiService.customerService.uploadImage(file);
       console.log('Image upload response:', uploadResponse);
 
       if (uploadResponse.success && uploadResponse.data && uploadResponse.data.url) {
         const imageUrl = uploadResponse.data.url;
-        console.log('Image URL received:', imageUrl);
+        console.log('Image URL received (local storage):', imageUrl);
         
         // 2. Send message with image
         const messagePayload = {
@@ -155,11 +155,17 @@ function CustomerServicePage() {
           setError(sendMessageResponse.message || '发送图片消息失败');
         }
       } else {
+        console.error('Upload response format error:', uploadResponse);
         setError('图片上传失败或返回格式不正确');
       }
     } catch (err) {
       console.error('Error during image upload or sending message:', err);
-      setError(err.message || '图片上传或发送失败');
+      if (err.response) {
+        console.error('Error response:', err.response.data);
+        setError(err.response.data?.message || '图片上传失败');
+      } else {
+        setError(err.message || '图片上传或发送失败');
+      }
     } finally {
       setSending(false);
       scrollToBottom();
@@ -250,6 +256,11 @@ function CustomerServicePage() {
                         cursor: 'pointer'
                       }} 
                       onClick={() => handleOpenImageModal(msg.imageUrl.startsWith('http') ? msg.imageUrl : `${baseStaticURL}${msg.imageUrl}`)}
+                      onError={(e) => {
+                        console.error('图片加载失败:', msg.imageUrl);
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.textContent = '图片加载失败';
+                      }}
                     />
                     <Typography 
                       variant="caption" 
@@ -341,6 +352,22 @@ function CustomerServicePage() {
           boxSizing: 'border-box'
         }}
       >
+        {sending && (
+          <Box sx={{ 
+            position: 'absolute', 
+            top: '-30px', 
+            left: '50%', 
+            transform: 'translateX(-50%)',
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            color: 'white',
+            px: 2,
+            py: 0.5,
+            borderRadius: 1,
+            fontSize: '0.75rem'
+          }}>
+            上传图片中...
+          </Box>
+        )}
         <TextField
           variant="outlined"
           placeholder="输入消息..."
@@ -371,7 +398,12 @@ function CustomerServicePage() {
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton onClick={triggerImageSelect} edge="end">
+                <IconButton 
+                  onClick={triggerImageSelect} 
+                  edge="end"
+                  disabled={sending}
+                  title="发送图片"
+                >
                   <AddPhotoAlternateIcon />
                 </IconButton>
               </InputAdornment>
