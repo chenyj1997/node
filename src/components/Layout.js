@@ -55,16 +55,8 @@ function Layout({ children }) {
   useEffect(() => {
     const fetchUnreadCount = async () => {
       try {
-        const res = await apiService.notificationService.getUnreadCount();
-        if (res && typeof res.data === 'number') {
-          setNotificationCount(res.data);
-        } else if (res && typeof res.data?.count === 'number') {
-          setNotificationCount(res.data.count);
-        } else if (typeof res.count === 'number') {
-          setNotificationCount(res.count);
-        } else {
-          setNotificationCount(0);
-        }
+        // 系统通知已经在首页显示，不需要未读提示
+        setNotificationCount(0);
       } catch (e) {
         setNotificationCount(0);
       }
@@ -126,13 +118,21 @@ function Layout({ children }) {
     fetchLatestSystemNotification();
   }, [location.pathname]);
 
-  const handleSystemNotificationCardClick = () => {
+  const handleSystemNotificationCardClick = async () => {
     if (latestSystemNotification) {
       const isTodayNoShow = () => {
         const key = 'noShowAnnouncementDate';
         const today = new Date().toISOString().slice(0, 10);
         return localStorage.getItem(key) === today;
       };
+
+      // 用户主动点击查看通知，标记为已读
+      try {
+        await apiService.notificationService.markNotificationAsRead(latestSystemNotification._id);
+        console.log('系统通知已标记为已读:', latestSystemNotification._id);
+      } catch (error) {
+        console.error('标记系统通知为已读失败:', error);
+      }
 
       const event = new CustomEvent('showSystemNotificationDetail', { 
         detail: { 
