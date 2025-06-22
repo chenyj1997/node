@@ -21,7 +21,7 @@ const INPUT_AREA_HEIGHT = '25px';
 const POLLING_INTERVAL = 4000; // 4秒轮询一次
 
 function CustomerServicePage() {
-  const { user, fetchUnreadCSCount } = useAuth();
+  const { user, clearUnreadCSCount } = useAuth();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -48,25 +48,21 @@ function CustomerServicePage() {
     setLoading(true);
     setError(null);
     try {
+      // 首先标记所有消息为已读
+      try {
+        await apiService.customerService.markAllCSMessagesAsRead();
+        console.log('所有客服消息已标记为已读');
+      } catch (err) {
+        console.error('标记所有消息为已读失败:', err);
+      }
+
       const response = await apiService.customerService.getMessages(user._id);
       if (response.success && Array.isArray(response.data)) {
         setMessages(response.data);
         
-        // 标记所有未读消息为已读
-        const unreadMessages = response.data.filter(msg => !msg.isRead && msg.senderType === 'admin');
-        
-        // 对每个未读消息调用 markMessageAsRead
-        for (const msg of unreadMessages) {
-          try {
-            await apiService.customerService.markMessageAsRead(msg._id);
-          } catch (err) {
-            console.error('CustomerServicePage: Failed to mark message as read:', msg._id, err);
-          }
-        }
-        
-        // 更新未读消息计数
-        if (fetchUnreadCSCount) {
-          fetchUnreadCSCount();
+        // 清除前端的未读计数
+        if (clearUnreadCSCount) {
+          clearUnreadCSCount();
         }
       } else {
         console.log('CustomerServicePage: Invalid response format:', response);
@@ -80,7 +76,7 @@ function CustomerServicePage() {
     } finally {
       setLoading(false);
     }
-  }, [user, fetchUnreadCSCount]);
+  }, [user, clearUnreadCSCount]);
 
   useEffect(() => {
     if (user && user._id) {
