@@ -111,7 +111,7 @@ function WalletPage() {
                         fontWeight: 600
                       }}
                     >
-                      {isExpense(tx.type) ? '-' : '+'}{tx.amount ? tx.amount.toFixed(2) : '0.00'}
+                      {isExpense(tx.type) ? '-' : '+'}{tx.amount ? Math.abs(tx.amount).toFixed(2) : '0.00'}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
                       余额: ￥{typeof tx.status === 'string'
