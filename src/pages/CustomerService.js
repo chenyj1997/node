@@ -10,7 +10,8 @@ import {
   CircularProgress,
   IconButton,
   InputAdornment,
-  Modal
+  Modal,
+  Alert
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
@@ -27,6 +28,7 @@ function CustomerServicePage() {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const messagesEndRef = useRef(null);
   const pollingIntervalRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -123,55 +125,89 @@ function CustomerServicePage() {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
 
-    console.log('Selected file for upload:', file.name, 'Size:', file.size, 'Type:', file.type);
-    setSending(true);
-    setError(null);
+    // 验证文件类型
+    if (!file.type.startsWith('image/')) {
+      setError('请选择图片文件！');
+      event.target.value = '';
+      return;
+    }
+
+    // 验证文件大小（限制为5MB）
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      setError('图片文件过大，请选择小于5MB的图片！');
+      event.target.value = '';
+      return;
+    }
+
+    // 创建本地预览URL
+    const previewUrl = URL.createObjectURL(file);
+    
+    // 立即在对话框中显示预览
+    const tempMessageId = 'temp-' + Date.now();
+    const tempMessage = {
+      _id: tempMessageId,
+      tempId: tempMessageId,
+      senderType: 'user',
+      messageType: 'image',
+      imageUrl: previewUrl,
+      content: file.name,
+      createdAt: new Date(),
+      sender: { username: '我' },
+      isTemp: true, // 标记为临时消息
+      isError: false
+    };
+
+    // 添加到消息列表并显示
+    setMessages(prevMessages => [...prevMessages, tempMessage]);
+    scrollToBottom();
+
+    // 显示上传进度提示
+    setError('正在上传图片...');
 
     try {
-      // 1. Upload file to server using local storage (not Cloudinary)
-      console.log('Uploading image to local storage...');
+      // 异步上传图片
       const uploadResponse = await apiService.customerService.uploadImage(file);
       console.log('Image upload response:', uploadResponse);
 
       if (uploadResponse.success && uploadResponse.data && uploadResponse.data.url) {
         const imageUrl = uploadResponse.data.url;
-        console.log('Image URL received (local storage):', imageUrl);
         
-        // 2. Send message with image
+        // 发送图片消息到服务器
         const messagePayload = {
           messageType: 'image',
           imageUrl: imageUrl,
           content: file.name
         };
 
-        console.log('Sending image message with payload:', messagePayload);
         const sendMessageResponse = await apiService.customerService.sendMessage(messagePayload);
-        console.log('Send message response:', sendMessageResponse);
-
+        
         if (sendMessageResponse.success && sendMessageResponse.data) {
-          console.log('Image message sent successfully:', sendMessageResponse.data);
-          setMessages(prevMessages => [...prevMessages, sendMessageResponse.data]);
+          // 上传成功，移除临时消息
+          setMessages(prevMessages => prevMessages.filter(msg => msg._id !== tempMessageId));
+          setError(null);
         } else {
-          setError(sendMessageResponse.message || '发送图片消息失败');
+          // 发送失败，保留临时消息但标记为错误
+          setMessages(prevMessages => prevMessages.map(msg => 
+            msg._id === tempMessageId ? { ...msg, isError: true } : msg
+          ));
+          setError(sendMessageResponse.message || '图片发送失败！');
         }
       } else {
-        console.error('Upload response format error:', uploadResponse);
-        setError('图片上传失败或返回格式不正确');
+        // 上传失败，移除临时消息
+        setMessages(prevMessages => prevMessages.filter(msg => msg._id !== tempMessageId));
+        setError(uploadResponse.message || '图片上传失败！');
       }
     } catch (err) {
-      console.error('Error during image upload or sending message:', err);
-      if (err.response) {
-        console.error('Error response:', err.response.data);
-        setError(err.response.data?.message || '图片上传失败');
-      } else {
-        setError(err.message || '图片上传或发送失败');
-      }
+      console.error('图片上传或发送失败:', err);
+      // 上传失败，移除临时消息
+      setMessages(prevMessages => prevMessages.filter(msg => msg._id !== tempMessageId));
+      setError(err.message || '图片上传或发送失败！');
     } finally {
-      setSending(false);
-      scrollToBottom();
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      // 清理本地预览URL
+      URL.revokeObjectURL(previewUrl);
+      setUploadingImage(false);
+      event.target.value = ''; // Clear file input value to allow re-uploading the same file
     }
   };
 
@@ -214,7 +250,15 @@ function CustomerServicePage() {
         minHeight: 0,
       }}>
         {loading && messages.length === 0 && <CircularProgress sx={{ alignSelf: 'center', my: 'auto' }} />}
-        {error && <Typography color="error" sx={{ textAlign: 'center', my: 2 }}>{error}</Typography>}
+        {error && (
+          <Alert 
+            severity={error.includes('失败') ? 'error' : 'info'} 
+            sx={{ mx: 2, mb: 2 }}
+            onClose={() => setError(null)}
+          >
+            {error}
+          </Alert>
+        )}
         {!loading && !error && messages.length === 0 && (
           <Typography sx={{ textAlign: 'center', my: 'auto', color: 'text.secondary' }}>
             还没有消息，快开始对话吧！
@@ -240,6 +284,8 @@ function CustomerServicePage() {
                   maxWidth: '65%',
                   mx: msg.senderType === 'user' || msg.sender?._id === user?._id ? 0 : '8px',
                   mr: msg.senderType === 'user' || msg.sender?._id === user?._id ? '8px' : 0,
+                  opacity: msg.isTemp ? 0.7 : 1,
+                  border: msg.isError ? '2px solid #f44336' : 'none',
                 }}
               >
                 {msg.messageType === 'image' && msg.imageUrl ? (
@@ -256,12 +302,22 @@ function CustomerServicePage() {
                         cursor: 'pointer'
                       }} 
                       onClick={() => handleOpenImageModal(msg.imageUrl.startsWith('http') ? msg.imageUrl : `${baseStaticURL}${msg.imageUrl}`)}
-                      onError={(e) => {
-                        console.error('图片加载失败:', msg.imageUrl);
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.textContent = '图片加载失败';
-                      }}
                     />
+                    {/* 为临时消息添加上传状态指示 */}
+                    {msg.isTemp && (
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          display: 'block', 
+                          textAlign: 'center', 
+                          mt: 0.5,
+                          fontSize: '0.75rem',
+                          color: msg.isError ? '#f44336' : 'rgba(255,255,255,0.8)',
+                        }}
+                      >
+                        {msg.isError ? '发送失败' : '正在上传...'}
+                      </Typography>
+                    )}
                     <Typography 
                       variant="caption" 
                       sx={{ 
@@ -352,29 +408,13 @@ function CustomerServicePage() {
           boxSizing: 'border-box'
         }}
       >
-        {sending && (
-          <Box sx={{ 
-            position: 'absolute', 
-            top: '-30px', 
-            left: '50%', 
-            transform: 'translateX(-50%)',
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            color: 'white',
-            px: 2,
-            py: 0.5,
-            borderRadius: 1,
-            fontSize: '0.75rem'
-          }}>
-            上传图片中...
-          </Box>
-        )}
         <TextField
           variant="outlined"
           placeholder="输入消息..."
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && !sending && handleSendMessage()}
-          disabled={sending}
+          disabled={sending || uploadingImage}
           sx={{
             flexGrow: 1, // Allow TextField to take available space
             mr: '18px', // 增加右边距以增加图标间距
@@ -401,8 +441,7 @@ function CustomerServicePage() {
                 <IconButton 
                   onClick={triggerImageSelect} 
                   edge="end"
-                  disabled={sending}
-                  title="发送图片"
+                  disabled={uploadingImage}
                 >
                   <AddPhotoAlternateIcon />
                 </IconButton>
@@ -413,7 +452,7 @@ function CustomerServicePage() {
         <IconButton 
           color="primary" 
           onClick={handleSendMessage} 
-          disabled={sending || (!newMessage.trim() && !'YOUR_IMAGE_PENDING_STATE')} // Adjust disabled logic for images
+          disabled={sending || uploadingImage || !newMessage.trim()}
           sx={{ 
             backgroundColor: 'primary.main', // Use theme color
             color: 'white',
