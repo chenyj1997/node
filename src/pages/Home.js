@@ -666,6 +666,30 @@ function Home() {
           />
         </Box>
       )}
+      {/* 首页底部联系方式 */}
+      <Box
+        component="footer"
+        sx={{
+          width: '100%',
+          py: 1,
+          textAlign: 'center',
+          fontSize: '0.95rem',
+          color: '#888',
+          borderTop: 'none',
+          bgcolor: 'transparent',
+          mt: 2
+        }}
+      >
+        备用客服TG：
+        <a
+          href="https://t.me/Yongxin1818"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: '#1976d2', textDecoration: 'none', fontWeight: 500 }}
+        >
+          @Yongxin1818
+        </a>
+      </Box>
     </>
   );
 }
