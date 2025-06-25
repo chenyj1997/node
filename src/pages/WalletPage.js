@@ -59,8 +59,13 @@ function WalletPage() {
     fetchTransactions();
   }, [fetchTransactions]);
 
-  // 新增：过滤掉待审核记录
-  const filteredTransactions = transactions.filter(tx => tx.status !== 'pending');
+  // 修改：过滤掉待审核和被拒绝的记录，只显示成功完成的交易
+  const filteredTransactions = transactions.filter(tx => 
+    tx.status !== 'pending' && 
+    tx.status !== 'rejected' && 
+    tx.status !== 'failed' && 
+    tx.status !== 'cancelled'
+  );
 
   return (
     <Container component="main" maxWidth="md" sx={{ mt: 4 }}>
